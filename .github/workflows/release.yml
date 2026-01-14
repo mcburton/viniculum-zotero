@@ -1,0 +1,63 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Update manifest version
+      run: |
+        sed -i 's/"version": ".*"/"version": "${{ steps.get_version.outputs.VERSION }}"/' manifest.json
+
+    - name: Build XPI
+      run: |
+        zip -r vinculum-zotero.xpi manifest.json bootstrap.js
+
+    - name: Generate updates.json
+      run: |
+        cat > updates.json << EOF
+        {
+          "addons": {
+            "vinculum-zotero@mcburton.net": {
+              "updates": [
+                {
+                  "version": "${{ steps.get_version.outputs.VERSION }}",
+                  "update_link": "https://github.com/mcburton/vinculum-zotero/releases/download/v${{ steps.get_version.outputs.VERSION }}/vinculum-zotero.xpi",
+                  "applications": {
+                    "zotero": {
+                      "strict_min_version": "7.0",
+                      "strict_max_version": "8.*"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+        EOF
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          vinculum-zotero.xpi
+          updates.json
+        body: |
+          Release version ${{ steps.get_version.outputs.VERSION }}
+
+          ## Installation
+          Download `vinculum-zotero.xpi` and install via Zotero → Tools → Add-ons → Install Add-on From File
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
