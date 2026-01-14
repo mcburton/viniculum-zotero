@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "Vinculum Zotero",
+  "version": "1.0.0",
+  "description": "Generate Zotero links to items or collections",
+  "author": "Matt Burton",
+  "homepage_url": "https://github.com/mcburton/vinculum-zotero",
+  "applications": {
+    "zotero": {
+      "id": "vinculum-zotero@example.com",
+      "update_url": "https://example.com/updates.json",
+      "strict_min_version": "7.0",
+      "strict_max_version": "8.*"
+    }
+  }
+}
